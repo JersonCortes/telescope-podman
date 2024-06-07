@@ -4,19 +4,22 @@ local previewers = require('telescope.previewers')
 local utils = require('telescope.previewers.utils')
 local config = require('telescope.config').values
 
+local log = require('plenary.log'):new()
+log.level = 'debug'
+
 local M = {}
 
 M.show_containers = function(opts)
 	pickers.new(opts,{
-		finder = finders.new_table({
-			results = {
-				{name = "test", value = {1,2,3,4}},
-				{name = "no", value = {1,2,3,4}},
-				{name = "maybe", value = {1,2,3,4}},
-				{name = "dunno", value = {1,2,3,4}},
-			},
+		finder = finders.new_async_job({
+			command_generator = function ()
+				return {"podman", "images", "--format", "json"}
+			end,
 
 			entry_maker = function (entry)
+				log.debug(entry)
+				local parsed = vim.json.decode(entry)
+				log.debug(parsed)
 				return {
 					value = entry,
 					display = entry.name,
