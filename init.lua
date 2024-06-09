@@ -20,8 +20,7 @@ M._assemble_command = function (subcommand)
 	local command = {"sh", "-c", fullCommand}
 
 	log.debug(command)
-    	local job = plenary.job:new(command):sync()
-	log.debug(job)
+	local job = plenary.job:new(command):sync()
 	return job
 end
 
@@ -34,16 +33,14 @@ M.show_containers = function(opts)
 			end,
 
 			entry_maker = function (entry)
-				log.debug(entry)
 				local parsed = vim.json.decode(entry)
-				log.debug(parsed)
-				log.debug('Accessing: ', parsed[1].Image)
-				log.debug('Accessing: ', parsed[2].Image)
+				log.debug('Parsed', parsed)
+				log.debug('Names', parsed[1].Names[1])
 
 				return {
 					value = parsed,
-					display = parsed[1].Image,
-					ordinal = parsed[1].Image,
+					display = parsed[1].Names[1],
+					ordinal = parsed[1].Names[1],
 				}
 			end
 		}),
@@ -51,19 +48,29 @@ M.show_containers = function(opts)
 		sorter = config.generic_sorter(opts),
 
 		previewer = previewers.new_buffer_previewer({
-			title = "Container Image details",
-			define_preview = function (self, entry)
-				vim.api.nvim_buf_set_lines(
-				self.state.bufnr,
-				0,
-				0,
-				true,
-				vim.tbl_flatten({
-					"```lua",
-					vim.split(vim.inspect(entry.value), "\n"),
-					"```"
-				})
-				)
+			title = "Container details",
+
+			define_preview = function(self, entry)
+				local display = {
+					'# ID: ' .. entry.Id,
+					'',
+					'*Names*: ' .. entry.Names,
+					'*Command*: ' .. entry.Command,
+					'*Labels*: ' .. entry.Labels,
+					'',
+					'*Image*: ' .. entry.Image,
+					'*Mounts*: ' .. entry.Mounts,
+					'*Networks*: ' .. entry.Networks,
+					'*Ports*: ' .. entry.Ports,
+					'',
+					'*Size*: ' .. entry.Size,
+					'',
+					'*State*: ' .. entry.State,
+					'*Status*: ' .. entry.Status,
+					'*CreatedAt*: ' .. entry.CreatedAt,
+				}
+
+				vim.api.nvim_buf_set_lines(self.state.bufnr, 0, 0, true, display)
 				utils.highlighter(self.state.bufnr, 'markdown')
 			end
 		})
