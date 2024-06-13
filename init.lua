@@ -1,14 +1,15 @@
-local pickers = require('telescope.pickers')
+local action_state = require('telescope.actions.state')
+local actions = require('telescope.actions')
+local config = require('telescope.config').values
 local finders = require('telescope.finders')
+local job = require('plenary.job')
+local pickers = require('telescope.pickers')
 local previewers = require('telescope.previewers')
 local utils = require('telescope.previewers.utils')
-local config = require('telescope.config').values
-local plenary = require('plenary') --Change plenary to plenary.job and local plenary to job
-local actions = require('telescope.actions')
-local action_state = require('telescope.actions.state')
-
-local log = require('plenary.log'):new()
-log.level = 'debug'
+local log = require('plenary.log'):new{
+	plugin = "telescope_podman",
+	level = "debug"
+}
 
 local M = {}
 
@@ -20,19 +21,21 @@ M._assemble_command = function (subcommand)
 	local aux = "--format json | jq -c"
 	local fullCommand = engine .. ' ' .. subcommand .. ' ' .. aux
 	local command = {"sh", "-c", fullCommand}
-	log.debug(command)
-	local job = plenary.job:new(command):sync()
 
-	local containers = vim.json.decode(table.concat(job, '\n'))
+	local jobResult = job:new(command):sync()
+
+	local containers = vim.json.decode(table.concat(jobResult, '\n'))
 	local entries = {}
 	for _, container in ipairs(containers) do
 		table.insert(entries, vim.json.encode(container))
 	end
+
 	return entries
 end
 
-local function refresh_picker(prompt_bufnr)
+M._refresh_picker = function(prompt_bufnr)
 	--work in progress
+	--State stays as "stopping" since it updates pretty fast. fix it (?)
 	local current_picker = action_state.get_current_picker(prompt_bufnr)
 	local finder = current_picker.finder
 	finder._finder_fn = function()
@@ -42,7 +45,6 @@ local function refresh_picker(prompt_bufnr)
 end
 
 M._start_stop_container = function(container)
-	--State stays as "stopping" since it updates pretty fast. fix it (?)
 	local engine = "podman"
 	local args = {}
 
@@ -51,9 +53,11 @@ M._start_stop_container = function(container)
 	else
 		args = "stop" .. ' ' .. container.display
 	end
+
 	local subcommand = engine .. ' ' .. args
 	local command = {"sh", "-c", subcommand}
-	plenary.job:new(command):start()
+
+	job:new(command):start()
 end
 
 M.show_containers = function(opts)
@@ -111,11 +115,11 @@ M.show_containers = function(opts)
 				end
 			end
 		}),
-		attach_mappings = function(prompt_bufnr)
+		attach_mappings = function()
 			actions.select_default:replace(function(prompt_bufnr)
 				local entry = action_state.get_selected_entry()
 				M._start_stop_container(entry)
-				refresh_picker(prompt_bufnr)
+				M._refresh_picker(prompt_bufnr)
 			end)
 			return true
 		end,
