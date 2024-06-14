@@ -1,4 +1,4 @@
-local telescope_podman = require('telescope_podman')
+local telescope_podman = require('telescope-podman')
 
 return require('telescope').register_extension({
     exports = {
