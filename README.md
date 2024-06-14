@@ -1,4 +1,4 @@
-##telescope-podman.nvim
+## telescope-podman.nvim
 
 **telescope-podman** is a in-progress plugin to integrateOCI engines with telescope allowing the user to interact
 with the desired engine. As it is still in-progress it only works with podman hence the name and has a very basic
