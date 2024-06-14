@@ -190,7 +190,4 @@ M.show_images = function(opts)
 	}):find()
 end
 
-
-M.show_containers()
-
 return M
