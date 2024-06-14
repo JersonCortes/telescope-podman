@@ -8,27 +8,27 @@ functionality (`show_images`, `show_containers`) and start/stop containers by pr
 
 #### lazy.nvim
 
-```
+```lua
 {
-		'JersonCortes/telescope-podman',
-		event = 'VeryLazy',
-		dependencies = {
-			'nvim-telescope/telescope.nvim',
-		},
-		config = function()
-			require('telescope').load_extension('telescope_podman')
-		end,
+	'JersonCortes/telescope-podman',
+	event = 'VeryLazy',
+	dependencies = {
+		'nvim-telescope/telescope.nvim',
+	},
+	config = function()
+		require('telescope').load_extension('telescope_podman')
+	end,
 
-		--Keybinds
-		keys = {
-			{
-				'<Leader>ci',
-				':Telescope telescope_podman show_images',
-			},
-			{
-				'<Leader>cp',
-				':Telescope telescope_podman show_containers',
-			},
+	--Keybinds
+	keys = {
+		{
+			'<Leader>ci',
+            ':Telescope telescope_podman show_images',
 		},
+		{
+			'<Leader>cp',
+			':Telescope telescope_podman show_containers',
+		},
+	},
 }
 ```
